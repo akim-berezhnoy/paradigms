@@ -99,7 +99,12 @@ public class ExpressionParser implements TripleParser {
                     // Variables
                     case "x", "y", "z" -> new Variable(operand);
                     // UnaryOperations
-                    case "-", "count", "reverse" -> createOperation(operand, nextOperand());
+                    case "-", "count" -> {
+                        if (isFunction(operand) &&!Character.isWhitespace(peek()) && peek() != '(' && peek() != '-') {
+                            throw new WhitespaceException(getStartPos(operand) + ": Expected whitespace after function " + operand + '.');
+                        }
+                        yield createOperation(operand, nextOperand());
+                    }
                     //
                     // HERE
                     //
