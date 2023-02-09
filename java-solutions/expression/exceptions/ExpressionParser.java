@@ -7,11 +7,11 @@ import java.util.Set;
 import java.util.Stack;
 
 public class ExpressionParser implements TripleParser {
-    public static TripleExpression parse(final CharSource source) {
+    public static TripleExpression parse(final CharSource source) throws ParseException {
         return new StaticExpressionParser(source).parseExpression();
     }
     @Override
-    public TripleExpression parse(String expression) {
+    public TripleExpression parse(String expression) throws ParseException{
         return parse(new StringSource(expression));
     }
     private static class StaticExpressionParser extends BaseParser {
@@ -30,7 +30,7 @@ public class ExpressionParser implements TripleParser {
          * Main ExpressionParser method. Parses till source end or closing bracket.
          * May be executed recursively inside brackets to parse full inside block.
          */
-        private Express parseExpression() {
+        private Express parseExpression() throws ParseException {
             Stack<Express> operands = new Stack<>();
             Stack<String> operators = new Stack<>();
             operands.push(nextOperand());
@@ -69,7 +69,7 @@ public class ExpressionParser implements TripleParser {
          *
          */
 
-        private void collectDescendingOperatorsOperand(Stack<Express> units, Stack<String> operations) {
+        private void collectDescendingOperatorsOperand(Stack<Express> units, Stack<String> operations) throws ParseException {
             do {
                 units.push(createOperation(operations.pop(), units.pop(), units.pop()));
             } while (!operations.isEmpty() && priority(operations.peek()) <= units.peek().getPriority());
@@ -78,7 +78,7 @@ public class ExpressionParser implements TripleParser {
         /*
          * Transforms an operand in expression. (Expr)
          */
-        private Express nextOperand() {
+        private Express nextOperand() throws ParseException {
             String operand = parseOperand();
             if (isNumber(operand)) {
                 // Constants
@@ -179,7 +179,7 @@ public class ExpressionParser implements TripleParser {
             };
         }
 
-        private Express createOperation(String operator, Express right, Express left) {
+        private Express createOperation(String operator, Express right, Express left) throws UnsupportedBinaryOperatorException {
             return switch (operator) {
                 case "+" -> new CheckedAdd(left, right);
                 case "-" -> new CheckedSubtract(left, right);
@@ -197,7 +197,7 @@ public class ExpressionParser implements TripleParser {
             };
         }
 
-        private Express createOperation(String operator, Express operand) {
+        private Express createOperation(String operator, Express operand) throws UnsupportedUnaryOperatorException {
             return switch (operator) {
                 case "-" -> new CheckedNegate(operand);
                 case "count" -> new Count(operand);
