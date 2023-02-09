@@ -1,8 +1,7 @@
-package expression.parser;
+package expression.exceptions;
 
 import expression.Express;
 import expression.Negate;
-import expression.exceptions.ResultOverflowException;
 
 public class CheckedNegate extends Negate {
     public CheckedNegate(Express operand) {

@@ -1,8 +1,7 @@
-package expression.parser;
+package expression.exceptions;
 
 import expression.Express;
 import expression.Subtract;
-import expression.exceptions.ResultOverflowException;
 
 public class CheckedSubtract extends Subtract {
     public CheckedSubtract(Express e1, Express e2) {

@@ -1,9 +1,7 @@
-package expression.parser;
+package expression.exceptions;
 
 import expression.Divide;
 import expression.Express;
-import expression.exceptions.DivisionByZeroException;
-import expression.exceptions.ResultOverflowException;
 
 public class CheckedDivide extends Divide {
     public CheckedDivide(Express e1, Express e2) {

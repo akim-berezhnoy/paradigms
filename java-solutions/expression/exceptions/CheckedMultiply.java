@@ -1,8 +1,7 @@
-package expression.parser;
+package expression.exceptions;
 
 import expression.Express;
 import expression.Multiply;
-import expression.exceptions.ResultOverflowException;
 
 public class CheckedMultiply extends Multiply {
     public CheckedMultiply(Express e1, Express e2) {

@@ -1,8 +1,7 @@
-package expression.parser;
+package expression.exceptions;
 
 import expression.Add;
 import expression.Express;
-import expression.exceptions.ResultOverflowException;
 
 public class CheckedAdd extends Add {
     public CheckedAdd(Express e1, Express e2) {
