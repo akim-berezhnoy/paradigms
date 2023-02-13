@@ -25,11 +25,6 @@ public class Const implements Express {
     }
 
     @Override
-    public int evaluate(int x) {
-        return value;
-    }
-
-    @Override
     public int evaluate(int x, int y, int z) {
         return value;
     }

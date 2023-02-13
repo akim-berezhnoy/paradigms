@@ -15,11 +15,6 @@ public abstract class BinaryOperation implements Express {
     public abstract int makeOperation(int a, int b);
 
     @Override
-    public int evaluate(int x) {
-        return makeOperation(leftOperand.evaluate(x), rightOperand.evaluate(x));
-    }
-
-    @Override
     public int evaluate(int x, int y, int z) {
         return makeOperation(leftOperand.evaluate(x,y,z), rightOperand.evaluate(x,y,z));
     }

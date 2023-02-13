@@ -1,7 +1,5 @@
 package expression;
 
-import expression.exceptions.IntIndexOutOfBoundsException;
-
 public class Clear extends BinaryOperation {
     public Clear(Express leftOperand, Express rightOperand) {
         super(leftOperand, rightOperand);

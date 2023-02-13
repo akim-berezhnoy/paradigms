@@ -14,11 +14,6 @@ public abstract class UnaryOperation implements Express {
     public abstract int makeOperation(int a);
 
     @Override
-    public int evaluate(int x) {
-        return makeOperation(operand.evaluate(x));
-    }
-
-    @Override
     public int evaluate(int x, int y, int z) {
         return makeOperation(operand.evaluate(x,y,z));
     }

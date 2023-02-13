@@ -23,11 +23,6 @@ public class Variable implements Express {
     }
 
     @Override
-    public int evaluate(int x) {
-        return x;
-    }
-
-    @Override
     public int evaluate(int x, int y, int z) {
         return switch (name) {
             case "x" -> x;
