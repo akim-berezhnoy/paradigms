@@ -2,13 +2,15 @@ package search;
 
 public class BinarySearch {
 
-    /*
-        Pred:
-         args != null &&
-         args.length > 0 &&
-         forall el in args : el is parsable integer value &&
-         forall i,j in [1..args.length-1] : i < j -> int(array[i]) >= int(array[j])
-     */
+    // Pred:
+    //    args != null &&
+    //    args.length > 0 &&
+    //    forall el in args : el is parsable integer value &&
+    //    forall i,j in [1..args.length-1]: i < j -> int(array[i]) >= int(array[j])
+    // Post:
+    //    System.out << R: forall i in [0..args.length-2]:
+    //                     (i < R -> int(arg[i+1]) > value) && (R <= i -> int(args[i+1]) <= value),
+    //                     R in [0..array.length-1]
     public static void main(String[] args) {
         int value = Integer.parseInt(args[0]);
         int[] array = new int[args.length - 1];
@@ -21,73 +23,69 @@ public class BinarySearch {
 
         System.out.println(iterAns == recAns ? iterAns : "Oops...");
     }
-    /*
-        Post:
-         execution
-            forall i in [0..args.length-2] : (i < R -> array[i+1] > value) && (R <= i -> array[i+1] <= value), R in [0..array.length-1]
-     */
 
-    /*
-        Pred:
-         forall i,j in [l..r-1] : i < j -> array[i] >= array[j] &&
-         l, r in [0..array.length] && l <= r
-    */
+
+    // Pred:
+    //    forall i,j in [l..r-1]: i < j -> array[i] >= array[j] &&
+    //    l, r in [0..array.length] &&
+    //    l <= r
+    // Post:
+    //    R: forall i in [l..r-1]:
+    //       (i < R -> array[i] > value) && (R <= i -> array[i] <= value)
     private static int binarySearchIterative(int[] array, int value, int l, int r) {
         // Inv:
-        //  array[l'] >= value >= array[r'] &&
-        //  forall i in [l..r-1] : i < l' -> array[i] > value &&
-        //  forall j in [l..r-1] : j >= r' -> value >= array[j] &&
-        //  l' <= r'
+        //   forall i,j in [l..r-1]: i < j -> array[i] >= array[j] &&
+        //   l, r in [0..array.length] &&
+        //   l' <= r' &&
+        //   array[x] >= value >= array[y] &&
+        //   forall i in [l..r-1] : i < l' -> array[i] > value &&
+        //   forall j in [l..r-1] : j >= r' -> value >= array[j]
         while (l < r) {
-            // Inv && l' != r'
+            // Inv && l' < r'
             if (value >= array[(l + r) / 2]) {
-                // Inv && l' != r' && value >= array[(l'+r')/2]
+                // Inv && l' < r' && value >= array[(l'+r')/2]
                 r = (l + r) / 2;
                 // Inv && l' <= r'
             } else {
-                // Inv && l' != r' && array[(l'+r')/2] > value &&
+                // Inv && l' < r' && array[(l'+r')/2] > value &&
                 l = (l + r) / 2 + 1;
                 // Inv && l' <= r'
             }
             // Inv && l' <= r'
         }
-        // Inv && l' == r' -> forall i in [l..r-1] : (i < l' -> array[i] > value) && (i >= l' -> value >= array[i])
+        // Inv && l' >= r' ->
+        // Inv && l' == r' ->
+        // forall i in [l..r-1] : (i < l' -> array[i] > value) && (i >= l' -> value >= array[i])
         return l;
     }
-    /*
-        Post:
-         R : forall i in [l..r-1] : (i < R -> array[i] > value) && (R <= i -> array[i] <= value)
-    */
 
-    /*
-        Pred:
-         forall i,j in [l..r-1] : i < j -> array[i] >= array[j] &&
-         l, r in [0..array.length] && l <= r
-    */
+    // Pred:
+    //    forall i,j in [l..r-1]: i < j -> array[i] >= array[j] &&
+    //    l, r in [0..array.length] &&
+    //    l <= r
+    // Post:
+    //    R: forall i in [l..r-1]:
+    //       (i < R -> array[i] > value) && (R <= i -> array[i] <= value)
     private static int binarySearchRecursive(int[] array, int value, int l, int r) {
-        // P:
-        //  array[l'] >= value >= array[r'] &&
-        //  forall i in [l..r-1] : i < l' -> array[i] > value &&
-        //  forall j in [l..r-1] : j >= r' -> value >= array[j] &&
-        //  l' <= r'
+        // C:
+        //   forall i,j in [l..r-1]: i < j -> array[i] >= array[j] &&
+        //   l, r in [0..array.length] &&
+        //   l' <= r' &&
+        //   array[x] >= value >= array[y] &&
+        //   forall i in [l..r-1] : i < l' -> array[i] > value &&
+        //   forall j in [l..r-1] : j >= r' -> value >= array[j]
         if (l < r) {
-            // P && l' != r'
+            // C && l' < r'
             if (value >= array[(l + r) / 2]) {
-                // P && l' != r' && value >= array[(l'+r')/2] ->
-                // Pred binarySearchRecursive(array, value, l, (l + r) / 2)
+                // C && l' < r' && value >= array[(l'+r')/2]
                 return binarySearchRecursive(array, value, l, (l + r) / 2);
             } else {
-                // P && l' != r' && array[(l'+r')/2] > value ->
-                // Pred binarySearchRecursive(array, value, (l + r) / 2 + 1, r)
+                // C && l' < r' && array[(l'+r')/2] > value
                 return binarySearchRecursive(array, value, (l + r) / 2 + 1, r);
             }
         } else {
-            // P && l' == r' -> forall i in [l..r-1] : (i < l' -> array[i] > value) && (i >= l' -> value >= array[i])
+            // C && l' < r' -> C && l' == r' -> forall i in [l..r-1] : (i < l' -> array[i] > value) && (i >= l' -> value >= array[i])
             return l;
         }
     }
-    /*
-        Post:
-         R : forall i in [l..r-1] : (i < R -> array[i] > value) && (R <= i -> array[i] <= value)
-    */
 }
