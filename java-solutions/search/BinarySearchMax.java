@@ -100,7 +100,7 @@ public class BinarySearchMax {
         while (l < r) {
             // Inv && StartInf &&
             // l' < r'
-            if (arr[(l+r)/2] < last) {
+            if (arr[(l+r)/2] < last) { // Overflow
                 // Inv && StartInf &&
                 // l' < r' && arr[(l'+r')/2] < last -> (l'+r')/2 < x -> (l'+r')/2+1 <= x
                 l = (l+r)/2+1;
@@ -117,6 +117,7 @@ public class BinarySearchMax {
         return arr[l];
     }
 
+    //:NOTE: l == -1000 r == 100000
     // Pred:
     //    args != null &&
     //    args.length > 0 &&
