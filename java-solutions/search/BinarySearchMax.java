@@ -29,16 +29,15 @@ public class BinarySearchMax {
             // StartInf && Inv && i < args.length
             array[args.length-i-1] = Integer.parseInt(args[i]);
             // StartInf && Inv (для i+1) &&
-            // i < args.length
-            // Inv: forall j in [0, i+1) array[array.length-1-2-i..array.length-1] = int(args[0..i+1])
+            // forall j in [0, i+1) array[array.length-1-2-i..array.length-1] = int(args[0..i+1])
             sum ^= array[i]&1;
-            // StartInf && Inv && (sum верно для i+1)
-            // array'.length = args.length && i = 0
-            // Inv: forall j in [0, i+1) array[array.length-1-2-i..array.length-1] = int(args[0..i+1])
+            // StartInf && Inv (для i+1) &&
+            // forall j in [0, i+1) array[array.length-1-2-i..array.length-1] = int(args[0..i+1])
+            // sum для i+1
 
-            // StartInf && Inv (всё для i+1)
+            // StartInf && Inv (всё для i+1) && sum для i+1
             i = i + 1;
-            // StartInf && Inv (всё для i)
+            // StartInf && Inv (всё для i) && sum для i+1
         }
         // P:
         // args != null &&
