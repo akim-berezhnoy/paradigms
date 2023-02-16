@@ -14,18 +14,26 @@ public class BinarySearch {
     public static void main(String[] args) {
         int value = Integer.parseInt(args[0]);
         int[] array = new int[args.length - 1];
+
+        int sum = 0;
+
         for (int i = 1; i < args.length; ++i) {
             array[i - 1] = Integer.parseInt(args[i]);
+            sum ^= array[i - 1]&1;
         }
 
-        int iterAns = binarySearchIterative(array, value, 0, array.length);
-        int recAns = binarySearchRecursive(array, value, 0, array.length);
-
-        System.out.println(iterAns == recAns ? iterAns : "Oops...");
+        int ans;
+        if (sum == 1) {
+            ans = binarySearchIterative(array, value, 0, array.length);
+        } else {
+            ans = binarySearchRecursive(array, value, 0, array.length);
+        }
+        System.out.println(ans);
     }
 
 
     // Pred:
+    //    array != null &&
     //    forall i,j in [l..r-1]: i < j -> array[i] >= array[j] &&
     //    l, r in [0..array.length] &&
     //    l <= r
@@ -37,7 +45,6 @@ public class BinarySearch {
         //   forall i,j in [l..r-1]: i < j -> array[i] >= array[j] &&
         //   l, r in [0..array.length] &&
         //   l' <= r' &&
-        //   array[x] >= value >= array[y] &&
         //   forall i in [l..r-1] : i < l' -> array[i] > value &&
         //   forall j in [l..r-1] : j >= r' -> value >= array[j]
         while (l < r) {
@@ -60,6 +67,7 @@ public class BinarySearch {
     }
 
     // Pred:
+    //    array != null &&
     //    forall i,j in [l..r-1]: i < j -> array[i] >= array[j] &&
     //    l, r in [0..array.length] &&
     //    l <= r
@@ -71,7 +79,6 @@ public class BinarySearch {
         //   forall i,j in [l..r-1]: i < j -> array[i] >= array[j] &&
         //   l, r in [0..array.length] &&
         //   l' <= r' &&
-        //   array[x] >= value >= array[y] &&
         //   forall i in [l..r-1] : i < l' -> array[i] > value &&
         //   forall j in [l..r-1] : j >= r' -> value >= array[j]
         if (l < r) {
