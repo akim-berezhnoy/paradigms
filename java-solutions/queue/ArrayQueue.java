@@ -22,14 +22,6 @@ public class ArrayQueue extends AbstractQueue {
         return ret;
     }
 
-    public Object remove() {
-        assert size > 0;
-        Object ret = elements[(head+size-1)%elements.length];
-        elements[(head+size-1)%elements.length] = null;
-        size--;
-        return ret;
-    }
-
     protected void clearImpl() {
         elements = new Object[10];
         head = 0;

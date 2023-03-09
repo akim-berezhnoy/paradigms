@@ -109,21 +109,21 @@ public abstract class AbstractQueue implements Queue {
     }
 
     public int indexOf(Object element) {
-        int index = 0;
-        for (Object el : this) {
-            if (element.equals(el)) {
-                return index;
-            }
-            index++;
-        }
-        return -1;
+        return indexImpl(element, false);
     }
 
     public int lastIndexOf(Object element) {
+        return indexImpl(element, true);
+    }
+
+    private int indexImpl(Object element, boolean isReversed) {
         int index = 0, ans = -1;
         for (Object el : this) {
             if (element.equals(el)) {
                 ans = index;
+                if (!isReversed) {
+                    return ans;
+                }
             }
             index++;
         }
