@@ -77,6 +77,11 @@ public interface Queue extends Iterable<Object> {
     boolean removeFirstOccurrence(Object element);
 
     //  Pred: true
+    //  Post: R = first(el) && immutable(n)
+    //  indexOf()
+    int indexOf(Object element);
+
+    //  Pred: true
     //  Post: R = last(el) && immutable(n)
     //  lastIndexOf()
     int lastIndexOf(Object element);
