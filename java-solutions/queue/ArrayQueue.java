@@ -1,71 +1,27 @@
 package queue;
-import java.util.Objects;
+import java.util.Arrays;
+import java.util.Iterator;
 
-/*
-Model: a[1]..a[n]
-Invariant: n >= 0 && for i=1..n: a[i] != null
-
-Let immutable(n): for i=1..n a'[i] = a[i]
-
-Inv: queue.size >= 0 && forall i = 1..n: elements[i] != null
- */
-public class ArrayQueue {
+public class ArrayQueue extends AbstractQueue {
     private Object[] elements = new Object[10];
     private int head;
-    private int size;
 
-    //  Pred: element != null
-    //  Post: n' = n + 1 && a[n'] = element && immutable(n)
-    //  enqueue(element)
-    public void enqueue(final Object element) {
-        Objects.requireNonNull(element);
+    protected void enqueueImpl(final Object element) {
         ensureCapacity(size + 1);
         elements[(head+size)%elements.length] = element;
-        size++;
     }
 
-    //  Pred: element != null
-    //  Post: n' = n + 1 && a[1] = element && for i=1..n-1: a'[i+1] = a[i]
-    //  push(element)
-    public void push(final Object element) {
-        Objects.requireNonNull(element);
-        ensureCapacity(size + 1);
-        head = (elements.length + head - 1)%elements.length;
-        elements[head] = element;
-        size++;
-    }
-
-    //  Pred: n >= 1
-    //  Post: R = a[1] && n' = n && immutable(n)
-    //  element()
-    public Object element() {
-        assert size > 0;
+    protected Object elementImpl() {
         return elements[head];
     }
 
-    //  Pred: n >= 1
-    //  Post: R = a[n] && n' = n && immutable(n)
-    //  peek()
-    public Object peek() {
-        assert size > 0;
-        return elements[(head+size-1)%elements.length];
-    }
-
-    //  Pred: n >= 1
-    //  Post: R = a[1] && n' = n - 1 && for i=1..n-1: a'[i] = a[i+1]
-    //  dequeue()
-    public Object dequeue() {
-        assert size > 0;
+    protected Object dequeueImpl() {
         Object ret = elements[head];
         elements[head] = null;
         head = (head + 1) % elements.length;
-        size--;
         return ret;
     }
 
-    //  Pred: n >= 1
-    //  Post: R = a[n] && n' = n - 1 && immutable(n-1)
-    //  remove()
     public Object remove() {
         assert size > 0;
         Object ret = elements[(head+size-1)%elements.length];
@@ -74,33 +30,22 @@ public class ArrayQueue {
         return ret;
     }
 
-    //  Pred: true
-    //  Post: R = n && n' = n && immutable(n)
-    //  size()
-    public int size() {
-        return size;
-    }
-
-    //  Pred: true
-    //  Post: R = (n == 0) && n' = n && immutable(n)
-    //  isEmpty()
-    public boolean isEmpty() {
-        return size == 0;
-    }
-
-    //  Pred: true
-    //  Post: n' = 0
-    //  clear()
-    public void clear() {
+    protected void clearImpl() {
         elements = new Object[10];
         head = 0;
-        size = 0;
     }
 
+    @Override
+    public Object get(int index) {
+        assert 1 <= index && index <= size;
+        return elements[(head+index-1)%elements.length];
+    }
 
-    // Pred: true
-    // Post: R = a[] &&  immutable(n)
-    // toArray()
+    protected void setImpl(int index, Object element) {
+        elements[(head+index-1)%elements.length] = element;
+    }
+
+    @Override
     public Object[] toArray() {
         Object[] res = new Object[size];
         for (int i = 0; i < size; i++) {
@@ -113,11 +58,48 @@ public class ArrayQueue {
         if (new_size <= elements.length) {
             return;
         }
-        final Object[] extended_elements = new Object[Math.max(new_size, 2*elements.length)];
-        System.arraycopy(elements, 0, extended_elements, 0, head);
-        System.arraycopy(elements, head, extended_elements,
-                extended_elements.length - elements.length + head, elements.length - head);
-        head += extended_elements.length - elements.length;
-        elements = extended_elements;
+        elements = Arrays.copyOf(toArray(), 2*elements.length);
+        head = 0;
+    }
+
+    @Override
+    public Iterator<Object> iterator() {
+        return new QueueIterator();
+    }
+
+    private class QueueIterator implements Iterator<Object> {
+        int iter = (elements.length+head-1)%elements.length;
+        int remaining = size;
+
+        private QueueIterator() {}
+
+        @Override
+        public boolean hasNext() {
+            return remaining > 0;
+        }
+
+        @Override
+        public Object next() {
+            remaining--;
+            iter = iter == elements.length-1 ? (++iter)%elements.length : ++iter;
+            return elements[iter];
+        }
+
+        @Override
+        public void remove() {
+            int initial_iter = iter;
+            int initial_remaining = remaining;
+
+            int start = initial_iter;
+            while(hasNext()) {
+                elements[start] = next();
+                start = (++start)%elements.length;
+            }
+            elements[start] = null;
+
+            this.iter = initial_iter;
+            this.remaining = initial_remaining;
+            size--;
+        }
     }
 }

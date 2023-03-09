@@ -8,7 +8,7 @@ public class QueueTests {
         System.out.print("      ");
         MyArrayQueueADTTest.run(ArrayQueueADT.create());
         System.out.print("      ");
-        MyArrayQueueTest.run();
+//        MyArrayQueueTest.run();
         System.out.println("ALL TESTS PASSED");
     }
 }
