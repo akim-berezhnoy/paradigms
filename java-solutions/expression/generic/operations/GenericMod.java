@@ -1,21 +1,23 @@
-package expression;
+package expression.generic.operations;
 
-import expression.generic.evaluators.*;
+import expression.BinaryOperation;
 import expression.generic.GenericExpression;
+import expression.generic.evaluators.Evaluator;
 
-public class Set extends BinaryOperation {
-    public Set(GenericExpression leftOperand, GenericExpression rightOperand) {
+public class GenericMod extends BinaryOperation {
+
+    public GenericMod(GenericExpression leftOperand, GenericExpression rightOperand) {
         super(leftOperand, rightOperand);
     }
 
     @Override
     protected <T> T evaluateImpl(Evaluator<T> evaluator, T a, T b) {
-        return evaluator.set(a, b);
+        return evaluator.mod(a, b);
     }
 
     @Override
     public String getSign() {
-        return "set";
+        return "mod";
     }
 
     @Override
@@ -24,16 +26,16 @@ public class Set extends BinaryOperation {
     }
 
     public static int priority() {
-        return 10;
+        return 3;
     }
 
     @Override
     public boolean isLeftAssociative() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isRightAssociative() {
-        return false;
+        return true;
     }
 }

@@ -1,21 +1,16 @@
 package expression.exceptions;
 
 import expression.Add;
-import expression.Express;
+import expression.generic.evaluators.*;
+import expression.generic.GenericExpression;
 
 public class CheckedAdd extends Add {
-    public CheckedAdd(Express e1, Express e2) {
+    public CheckedAdd(GenericExpression e1, GenericExpression e2) {
         super(e1, e2);
     }
 
     @Override
-    public int makeOperation(int a, int b) throws ResultOverflowException {
-        if (a > 0 && b > 0 && a > Integer.MAX_VALUE - b) {
-            throw new ResultOverflowException(String.format("Result overflow: %d + %d > %d", a, b, Integer.MAX_VALUE));
-        }
-        if (a < 0 && b < 0 && a < Integer.MIN_VALUE - b) {
-            throw new ResultOverflowException(String.format("Result overflow: %d + %d < %d", a, b, Integer.MIN_VALUE));
-        }
-        return super.makeOperation(a, b);
+    protected <T> T evaluateImpl(Evaluator<T> evaluator, T a, T b) {
+        return evaluator.setChecks(true).add(a,b);
     }
 }

@@ -1,22 +1,41 @@
 package expression;
 
-public abstract class UnaryOperation implements Express {
+import expression.generic.evaluators.*;
+import expression.generic.GenericExpression;
 
-    private final Express operand;
+public abstract class UnaryOperation implements GenericExpression {
 
-    public UnaryOperation(Express operand) {
+    private final GenericExpression operand;
+
+    public UnaryOperation(GenericExpression operand) {
         this.operand = operand;
     }
 
     public abstract String getSign();
     public abstract int getPriority();
 
-    public abstract int makeOperation(int a);
+    @Override
+    public boolean isLeftAssociative() {
+        return true;
+    }
 
     @Override
-    public int evaluate(int x, int y, int z) {
-        return makeOperation(operand.evaluate(x,y,z));
+    public boolean isRightAssociative() {
+        return true;
     }
+
+    @Override
+    final public int evaluate(int x, int y, int z) {
+        return evaluateGeneric(new IntegerEvaluator().setChecks(true), x, y, z);
+    }
+
+    @Override
+    final public <T> T evaluateGeneric(Evaluator<T> evaluator, T x, T y, T z) {
+        return evaluateImpl(evaluator,
+                operand.evaluateGeneric(evaluator, x, y ,z));
+    }
+
+    protected abstract <T> T evaluateImpl(Evaluator<T> evaluator, T a);
 
     @Override
     public int hashCode() {

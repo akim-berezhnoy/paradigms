@@ -1,6 +1,11 @@
 package expression;
 
-public class Const implements Express {
+import expression.generic.evaluators.*;
+import expression.generic.GenericExpression;
+
+import java.util.Objects;
+
+public class Const implements GenericExpression {
     private final int value;
     private final String stringValue;
 
@@ -26,18 +31,23 @@ public class Const implements Express {
 
     @Override
     public int evaluate(int x, int y, int z) {
-        return value;
+        return evaluateGeneric(new IntegerEvaluator().setChecks(false), x, y, z);
+    }
+
+    @Override
+    public <T> T evaluateGeneric(Evaluator<T> evaluator, T x, T y, T z) {
+        return evaluator.castT(value);
     }
 
     @Override
     public int hashCode() {
-        return Double.hashCode(value);
+        return toString().hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof final Const that) {
-            return that.value == this.value;
+            return Objects.equals(that.value, this.value);
         }
         return false;
     }

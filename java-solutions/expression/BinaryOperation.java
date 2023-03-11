@@ -1,10 +1,13 @@
 package expression;
 
-public abstract class BinaryOperation implements Express {
-    private final Express leftOperand;
-    private final Express rightOperand;
+import expression.generic.evaluators.*;
+import expression.generic.GenericExpression;
 
-    public BinaryOperation(Express leftOperand, Express rightOperand) {
+public abstract class BinaryOperation implements GenericExpression {
+    private final GenericExpression leftOperand;
+    private final GenericExpression rightOperand;
+
+    public BinaryOperation(GenericExpression leftOperand, GenericExpression rightOperand) {
         this.leftOperand = leftOperand;
         this.rightOperand = rightOperand;
     }
@@ -12,12 +15,19 @@ public abstract class BinaryOperation implements Express {
     public abstract String getSign();
     public abstract int getPriority();
 
-    public abstract int makeOperation(int a, int b);
+    @Override
+    final public int evaluate(int x, int y, int z) {
+        return evaluateGeneric(new IntegerEvaluator().setChecks(true), x, y, z);
+    }
 
     @Override
-    public int evaluate(int x, int y, int z) {
-        return makeOperation(leftOperand.evaluate(x,y,z), rightOperand.evaluate(x,y,z));
+    final public <T> T evaluateGeneric(Evaluator<T> evaluator, T x, T y, T z) {
+        return evaluateImpl(evaluator,
+                leftOperand.evaluateGeneric(evaluator, x, y ,z),
+                rightOperand.evaluateGeneric(evaluator, x, y, z));
     }
+
+    protected abstract <T> T evaluateImpl(Evaluator<T> evaluator, T a, T b);
 
     @Override
     public int hashCode() {

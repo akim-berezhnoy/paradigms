@@ -1,24 +1,27 @@
 package expression.exceptions;
 
 import expression.*;
+import expression.generic.operations.GenericAdd;
 import expression.parser.*;
+import expression.generic.*;
+import expression.generic.operations.*;
 
 import java.util.Set;
 import java.util.Stack;
 
 public class ExpressionParser implements TripleParser {
-    public static TripleExpression parse(final CharSource source) throws ParseException {
+    public static GenericExpression parse(final CharSource source) throws ParseException {
         return new StaticExpressionParser(source).parseExpression();
     }
     @Override
-    public TripleExpression parse(String expression) throws ParseException{
+    public GenericExpression parse(String expression) throws ParseException{
         return parse(new StringSource(expression));
     }
     private static class StaticExpressionParser extends BaseParser {
         private static final PrefixTree binaryTokens = new PrefixTree(
-                Set.of("+", "-", "/", "*", "clear", "set", ")"));
+                Set.of("+", "-", "/", "*", "clear", "set", "mod", ")"));
         private static final PrefixTree unaryTokens = new PrefixTree(
-                Set.of("-", "x", "y", "z", "count", "reverse", "("));
+                Set.of("-", "x", "y", "z", "abs", "square", "count", "reverse", "("));
 
         private int bracketBalance;
 
@@ -30,8 +33,8 @@ public class ExpressionParser implements TripleParser {
          * Main ExpressionParser method. Parses till source end or closing bracket.
          * May be executed recursively inside brackets to parse full inside block.
          */
-        private Express parseExpression() throws ParseException {
-            Stack<Express> operands = new Stack<>();
+        private GenericExpression parseExpression() throws ParseException {
+            Stack<GenericExpression> operands = new Stack<>();
             Stack<String> operators = new Stack<>();
             operands.push(nextOperand());
             skipWhitespace(); //SKIP WHITESPACE
@@ -69,7 +72,7 @@ public class ExpressionParser implements TripleParser {
          *
          */
 
-        private void collectDescendingOperatorsOperand(Stack<Express> units, Stack<String> operations) throws ParseException {
+        private void collectDescendingOperatorsOperand(Stack<GenericExpression> units, Stack<String> operations) throws ParseException {
             do {
                 units.push(createOperation(operations.pop(), units.pop(), units.pop()));
             } while (!operations.isEmpty() && priority(operations.peek()) <= units.peek().getPriority());
@@ -78,7 +81,7 @@ public class ExpressionParser implements TripleParser {
         /*
          * Transforms an operand in expression. (Expr)
          */
-        private Express nextOperand() throws ParseException {
+        private GenericExpression nextOperand() throws ParseException {
             String operand = parseOperand();
             if (isNumber(operand)) {
                 // Constants
@@ -99,20 +102,19 @@ public class ExpressionParser implements TripleParser {
                     // Variables
                     case "x", "y", "z" -> new Variable(operand);
                     // UnaryOperations
-                    case "-", "count" -> {
-                        if (isFunction(operand) &&!Character.isWhitespace(peek()) && peek() != '(' && peek() != '-') {
-                            throw new WhitespaceException(getStartPos(operand) + ": Expected whitespace after function " + operand + '.');
+                    default -> {
+                        if (unaryTokens.contains(operand)) {
+                            if (isFunction(operand) && !Character.isWhitespace(peek()) && peek() != '(' && peek() != '-') {
+                                throw new WhitespaceException(getStartPos(operand) + ": Expected whitespace after function " + operand + '.');
+                            }
+                            yield createOperation(operand, nextOperand());
                         }
-                        yield createOperation(operand, nextOperand());
+                        throw new TokenParseException(getStartPos(operand) +
+                                ": Expected bracket-block, variable or constant, but found " +
+                                (operand.isEmpty() ? "nothing" :
+                                        (binaryTokens.contains(operand) ? "binary token " + operand :
+                                                operand)) + ".");
                     }
-                    //
-                    // HERE
-                    //
-                    default -> throw new TokenParseException(getStartPos(operand) +
-                            ": Expected bracket-block, variable or constant, but found " +
-                            (operand.isEmpty() ? "nothing" :
-                                    (binaryTokens.contains(operand) ? "binary token " + operand :
-                                            operand)) + ".");
                 };
             }
         }
@@ -170,6 +172,7 @@ public class ExpressionParser implements TripleParser {
                 case "/" -> CheckedDivide.priority();
                 case "clear" -> Clear.priority();
                 case "set" -> expression.Set.priority();
+                case "mod" -> GenericMod.priority();
                 //
                 // HERE
                 //
@@ -179,19 +182,20 @@ public class ExpressionParser implements TripleParser {
 
         private boolean isFunction(String operation) {
             return switch (operation) {
-                case "clear", "set", "count" -> true;
+                case "clear", "set", "count", "abs", "square" -> true;
                 default -> false;
             };
         }
 
-        private Express createOperation(String operator, Express right, Express left) throws UnsupportedBinaryOperatorException {
+        private GenericExpression createOperation(String operator, GenericExpression right, GenericExpression left) throws UnsupportedBinaryOperatorException {
             return switch (operator) {
-                case "+" -> new CheckedAdd(left, right);
-                case "-" -> new CheckedSubtract(left, right);
-                case "*" -> new CheckedMultiply(left, right);
-                case "/" -> new CheckedDivide(left, right);
-                case "clear" -> new Clear(left, right);
-                case "set" -> new expression.Set(left, right);
+                case "+" -> new GenericAdd(left, right);
+                case "-" -> new GenericSub(left, right);
+                case "*" -> new GenericMul(left, right);
+                case "/" -> new GenericDiv(left, right);
+                case "clear" -> new GenericClear(left, right);
+                case "set" -> new expression.generic.operations.GenericSet(left, right);
+                case "mod" -> new GenericMod(left, right);
                 //
                 // HERE
                 //
@@ -202,10 +206,12 @@ public class ExpressionParser implements TripleParser {
             };
         }
 
-        private Express createOperation(String operator, Express operand) throws UnsupportedUnaryOperatorException {
+        private GenericExpression createOperation(String operator, GenericExpression operand) throws UnsupportedUnaryOperatorException {
             return switch (operator) {
-                case "-" -> new CheckedNegate(operand);
-                case "count" -> new Count(operand);
+                case "-" -> new GenericNeg(operand);
+                case "count" -> new GenericCount(operand);
+                case "abs" -> new GenericAbs(operand);
+                case "square" -> new GenericSquare(operand);
                 //
                 // HERE
                 //

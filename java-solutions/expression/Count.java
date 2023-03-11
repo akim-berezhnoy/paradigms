@@ -1,18 +1,16 @@
 package expression;
 
+import expression.generic.evaluators.*;
+import expression.generic.GenericExpression;
+
 public class Count extends UnaryOperation {
-    public Count(Express operand) {
+    public Count(GenericExpression operand) {
         super(operand);
     }
 
     @Override
-    public boolean isLeftAssociative() {
-        return true;
-    }
-
-    @Override
-    public boolean isRightAssociative() {
-        return true;
+    protected <T> T evaluateImpl(Evaluator<T> evaluator, T a) {
+        return evaluator.count(a);
     }
 
     @Override
@@ -23,16 +21,5 @@ public class Count extends UnaryOperation {
     @Override
     public int getPriority() {
         return 1;
-    }
-
-    @Override
-    public int makeOperation(int a) {
-        int c = 0;
-        for (int i = 0; i < 32; i++) {
-            if (((a >> i) & 1) == 1) {
-                c++;
-            }
-        }
-        return c;
     }
 }

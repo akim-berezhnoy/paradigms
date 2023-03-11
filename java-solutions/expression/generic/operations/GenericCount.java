@@ -1,16 +1,16 @@
-package expression.exceptions;
+package expression.generic.operations;
 
-import expression.Negate;
+import expression.Count;
 import expression.generic.evaluators.*;
 import expression.generic.GenericExpression;
 
-public class CheckedNegate extends Negate {
-    public CheckedNegate(GenericExpression operand) {
+public class GenericCount extends Count {
+    public GenericCount(GenericExpression operand) {
         super(operand);
     }
 
     @Override
     protected <T> T evaluateImpl(Evaluator<T> evaluator, T a) {
-        return evaluator.setChecks(true).neg(a);
+        return evaluator.count(a);
     }
 }

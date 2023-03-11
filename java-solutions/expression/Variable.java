@@ -1,6 +1,9 @@
 package expression;
 
-public class Variable implements Express {
+import expression.generic.evaluators.*;
+import expression.generic.GenericExpression;
+
+public class Variable implements GenericExpression {
     private final String name;
 
     public Variable(String name) {
@@ -24,12 +27,21 @@ public class Variable implements Express {
 
     @Override
     public int evaluate(int x, int y, int z) {
+        return evaluateT(x,y,z);
+    }
+
+    public <T> T evaluateT(T x, T y, T z) {
         return switch (name) {
             case "x" -> x;
             case "y" -> y;
             case "z" -> z;
-            default -> 0;
+            default -> null;
         };
+    }
+
+    @Override
+    public <T> T evaluateGeneric(Evaluator<T> evaluator, T x, T y, T z) {
+        return evaluateT(x,y,z);
     }
 
     @Override

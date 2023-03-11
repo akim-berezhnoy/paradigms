@@ -1,21 +1,22 @@
-package expression;
+package expression.generic.operations;
 
-import expression.generic.evaluators.*;
+import expression.UnaryOperation;
 import expression.generic.GenericExpression;
+import expression.generic.evaluators.Evaluator;
 
-public class Negate extends UnaryOperation {
-    public Negate(GenericExpression operand) {
+public class GenericAbs extends UnaryOperation {
+    public GenericAbs(GenericExpression operand) {
         super(operand);
     }
 
     @Override
     protected <T> T evaluateImpl(Evaluator<T> evaluator, T a) {
-        return evaluator.setChecks(false).neg(a);
+        return evaluator.abs(a);
     }
 
     @Override
     public String getSign() {
-        return "-";
+        return "abs";
     }
 
     @Override
