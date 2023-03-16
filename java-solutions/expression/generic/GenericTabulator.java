@@ -1,5 +1,6 @@
 package expression.generic;
 
+import expression.exceptions.CheckedAdd;
 import expression.exceptions.EvaluationException;
 import expression.exceptions.ExpressionParser;
 import expression.generic.evaluators.*;
@@ -11,6 +12,8 @@ public class GenericTabulator implements Tabulator {
     }
 
     private Object evalInMode(String mode, GenericExpression expr, int x, int y , int z) {
+//        CheckedOp (= Unchecked
+        // Copypaste
         return switch (mode) {
             case "i" -> evaluateExpr(expr, new IntegerEvaluator().setChecks(true), x, y, z);
             case "u" -> evaluateExpr(expr, new IntegerEvaluator().setChecks(false), x, y, z);
