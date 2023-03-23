@@ -3,13 +3,12 @@
 /*
 EASY
 */
-
-let expression = f => (...args) => (...vars) => f(...args.map(arg => arg(...vars)));
+let argsOrd  = ['x', 'y', 'z'];
+let expression = f => (...args) => (...evalArgs) => f(...args.map(arg => arg(...evalArgs)));
 let cnst = a => () => a;
 let one = cnst(1);
 let two = cnst(2);
-
-let variable = name => (x, y, z) => ({'x': x, 'y': y, 'z': z})[name];
+let variable = name => (...evalArgs) => evalArgs[argsOrd.indexOf(name)];
 let add = expression((a, b) => a + b);
 let subtract = expression((a, b) => a - b);
 let multiply = expression((a, b) => a * b);
@@ -38,9 +37,9 @@ let example = add(
 );
 
 
-for (let i = 0; i <= 10; i++) {
-    println(example(i, 0, 0))
-}
+// for (let i = 0; i <= 10; i++) {
+//     println(example(i, 0, 0))
+// }
 
 /*
 HARD
@@ -97,19 +96,16 @@ function parse(str) {
             args: 1
         },
     }
-    const variables = ['x','y','z']
     const constants = {
         'one': one,
         'two': two,
     }
-    let isOperand = str => (!isNaN(str) || variables.includes(str) || str in constants);
-    let convertOperand = str => !isNaN(str) ? cnst(Number(str)) : variables.includes(str) ? variable(str) : constants[str];
+    let isOperand = str => (!isNaN(str) || argsOrd.includes(str) || str in constants);
+    let convertOperand = str => argsOrd.includes(str) ? variable(str) : str in constants ? constants[str] : cnst(Number(str));
     let convertFunction = (f, n, stack) => {
-        let operands = [n];
-        for (let i = n-1; i >= 0; i--) {
-            operands[i] = stack.pop();
-        }
-        return f(...operands);
+        let args = stack.slice(stack.length-n);
+        stack.splice(stack.length-n, n);
+        return f(...args);
     }
     let token, operands = [], tokens = str.split(" ").filter((str) => str !== '').reverse();
     while (tokens.length > 0) {
@@ -120,3 +116,7 @@ function parse(str) {
     }
     return operands.pop();
 }
+
+let gg = parse("y negate");
+
+console.log(gg(0,0,0))
