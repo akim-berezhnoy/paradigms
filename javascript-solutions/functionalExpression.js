@@ -4,10 +4,11 @@
 EASY
 */
 
-let expression = f => (...args) => (...args1) => f(...args.map(arg => arg(...args1)));
+let expression = f => (...args) => (...vars) => f(...args.map(arg => arg(...vars)));
 let cnst = a => () => a;
 let one = cnst(1);
-let two = () => 2;
+let two = cnst(2);
+
 let variable = name => (x, y, z) => ({'x': x, 'y': y, 'z': z})[name];
 let add = expression((a, b) => a + b);
 let subtract = expression((a, b) => a - b);
