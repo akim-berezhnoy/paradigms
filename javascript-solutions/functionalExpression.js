@@ -4,18 +4,18 @@
 EASY
 */
 
-let expression = f => (...args) => (x,y,z) => f(...args.map(arg => arg(x,y,z)));
+let expression = f => (...args) => (...args1) => f(...args.map(arg => arg(...args1)));
 let cnst = a => () => a;
-let one = () => 1;
+let one = cnst(1);
 let two = () => 2;
 let variable = name => (x, y, z) => ({'x': x, 'y': y, 'z': z})[name];
-let add = expression((a, b) => a+b);
-let subtract = expression((a, b) => a-b);
-let multiply = expression((a, b) => a*b);
-let divide = expression((a, b) => a/b);
+let add = expression((a, b) => a + b);
+let subtract = expression((a, b) => a - b);
+let multiply = expression((a, b) => a * b);
+let divide = expression((a, b) => a / b);
 let negate = expression(a => -a);
-let madd = expression((a,b,c) => a*b+c);
-let floor = expression(a => Math.floor(a));
+let madd = expression((a,b,c) => a * b + c);
+let floor = expression(Math.floor);
 let ceil = expression(a => Math.ceil(a));
 let sin = expression((a) => Math.sin(a));
 let cos = expression((a) => Math.cos(a));
