@@ -105,10 +105,10 @@ function parse(str) {
     let convertOperand = str => !isNaN(str) ? cnst(Number(str)) : variables.includes(str) ? variable(str) : constants[str];
     let convertFunction = (f, n, stack) => {
         let operands = [n];
-        for (let i = 0; i < n; i++) {
+        for (let i = n-1; i >= 0; i--) {
             operands[i] = stack.pop();
         }
-        return f(...operands.reverse());
+        return f(...operands);
     }
     let token, operands = [], tokens = str.split(" ").filter((str) => str !== '').reverse();
     while (tokens.length > 0) {
