@@ -37,9 +37,9 @@ let example = add(
 );
 
 
-// for (let i = 0; i <= 10; i++) {
-//     println(example(i, 0, 0))
-// }
+for (let i = 0; i <= 10; i++) {
+    println(example(i, 0, 0))
+}
 
 /*
 HARD
@@ -116,7 +116,3 @@ function parse(str) {
     }
     return operands.pop();
 }
-
-let gg = parse("y negate");
-
-console.log(gg(0,0,0))
