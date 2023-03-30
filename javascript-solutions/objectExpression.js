@@ -82,6 +82,16 @@ const Ln = operationConstructorCreator(
     "ln",
     a => d => new Multiply(new Divide(new Const(1), a), a.diff(d)),
 )
+const ArcTan = operationConstructorCreator(
+    a => Math.atan(a),
+    "atan",
+    a => d => new Multiply(new Divide(new Const(1), new Add(new Const(1), new Multiply(a, a))), a.diff(d)),
+)
+const ArcTan2 = operationConstructorCreator(
+    (a, b) => Math.atan2(a, b),
+    "atan2",
+    (a, b) => d => new Multiply(new ArcTan(new Divide(a, b)), new Divide(a, b).diff(d)),
+)
 const Sqrt = operationConstructorCreator(
     a => Math.sqrt(a),
     "sqrt",
@@ -120,6 +130,14 @@ function parse(str) {
         'ln': {
             f: Ln,
             args: 1
+        },
+        'atan': {
+            f: ArcTan,
+            args: 1
+        },
+        'atan2': {
+            f: ArcTan2,
+            args: 2
         },
     }
     const constants = {
