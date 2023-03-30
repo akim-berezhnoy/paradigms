@@ -72,6 +72,16 @@ const Negate = operationConstructorCreator(
     "negate",
     a => d => new Negate(a.diff(d)),
 )
+const Exp = operationConstructorCreator(
+    a => Math.pow(Math.E, a),
+    "exp",
+    a => d => new Multiply(new Exp(a), a.diff(d)),
+)
+const Ln = operationConstructorCreator(
+    a => Math.log(a),
+    "ln",
+    a => d => new Multiply(new Divide(new Const(1), a), a.diff(d)),
+)
 const Sqrt = operationConstructorCreator(
     a => Math.sqrt(a),
     "sqrt",
@@ -101,6 +111,14 @@ function parse(str) {
         },
         'negate': {
             f: Negate,
+            args: 1
+        },
+        'exp': {
+            f: Exp,
+            args: 1
+        },
+        'ln': {
+            f: Ln,
             args: 1
         },
     }
