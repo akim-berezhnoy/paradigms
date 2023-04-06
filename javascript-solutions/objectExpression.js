@@ -11,6 +11,12 @@ Const.prototype = {
     diff: function () { return constants.ZERO },
 }
 
+const constants = {
+    'ZERO': new Const(0),
+    'ONE': new Const(1),
+    'TWO': new Const(2),
+};
+
 // Variable
 let argsOrd = ['x', 'y', 'z'];
 function Variable(name) {
@@ -34,8 +40,11 @@ Operation.prototype = {
     diff: function (d) { return this.diffRule(...this.operands)(d) },
 }
 
+// Operators-list for parser
+const operators = new Map();
+
 // Creators
-function createOperation(f, sign, diffRule) {
+function createOperation(f, sign, diffRule, n) {
     function Constructor(...operands) {
         Operation.call(this, ...operands);
     }
@@ -44,27 +53,30 @@ function createOperation(f, sign, diffRule) {
     Constructor.prototype.f = f;
     Constructor.prototype.sign = sign;
     Constructor.prototype.diffRule = diffRule;
+    operators.set(sign, {constructor: Constructor, argc: n});
     return Constructor;
 }
 
-function createConcreteOperation(n, ...params) {
-    let operation = createOperation(...params);
-    operation.prototype.n = n;
-    operation.prototype.sign = operation.prototype.sign + n;
+function createConcreteOperation(f, sign, diffRule, n) {
+    let operation = createOperation(f, sign, diffRule, n);
+    let proto = operators.get(operation.prototype.sign).constructor.prototype;
+    operators.delete(proto.sign);
+    operators.set(proto.sign = proto.sign + n, {constructor: proto.constructor, argc: n})
     return operation;
 }
 
-
-// Operators (binary)
+// Operators
 const Add = createOperation(
     (a, b) => a + b,
     "+",
     (a, b) => d => new Add(a.diff(d), b.diff(d)),
+    2,
 )
 const Subtract = createOperation(
     (a, b) => a - b,
     "-",
     (a, b) => d => new Subtract(a.diff(d), b.diff(d)),
+    2,
 )
 const Multiply = createOperation(
     (a, b) => a * b,
@@ -73,6 +85,7 @@ const Multiply = createOperation(
         new Multiply(a.diff(d), b),
         new Multiply(a, b.diff(d))
     ),
+    2,
 )
 const Divide = createOperation(
     (a, b) => a / b,
@@ -84,11 +97,13 @@ const Divide = createOperation(
         ),
         new Multiply(b, b)
     ),
+    2,
 )
 const Negate = createOperation(
     a => -a,
     "negate",
     a => d => new Negate(a.diff(d)),
+    1,
 )
 const Exp = createOperation(
     a => Math.pow(Math.E, a),
@@ -97,8 +112,9 @@ const Exp = createOperation(
         new Exp(a),
         a.diff(d)
     ),
+    1,
 )
-const Ln = createOperation(
+const Ln = createConcreteOperation(
     a => Math.log(a),
     "ln",
     a => d => new Multiply(
@@ -107,7 +123,8 @@ const Ln = createOperation(
             a
         ),
         a.diff(d)
-    )
+    ),
+    1,
 )
 const Sqrt = createOperation(
     a => Math.sqrt(a),
@@ -121,7 +138,8 @@ const Sqrt = createOperation(
             )
         ),
         a.diff(d)
-    )
+    ),
+    1,
 )
 const ArcTan = createOperation(
     a => Math.atan(a),
@@ -133,31 +151,33 @@ const ArcTan = createOperation(
             new Multiply(a, a)
         )
     ),
+    1,
 )
 const ArcTan2 = createOperation(
     (a, b) => Math.atan2(a, b),
     "atan2",
     (a, b) => d => new ArcTan(new Divide(a, b)).diff(d),
+    2,
 )
 const SumSq = createOperation(
     (...args) => args.map(arg => Math.pow(arg, 2)).reduce((accum, arg) => accum + arg, 0),
     "sumsq",
-    (...args) => d => args.map(arg => new Multiply(arg, arg).diff(d)).reduce((accum, arg) => new Add(accum, arg), constants.ZERO)
+    (...args) => d => args.map(arg => new Multiply(arg, arg).diff(d)).reduce((accum, arg) => new Add(accum, arg), constants.ZERO),
 )
 function SumSqN(n) {
     return createConcreteOperation(
-        n,
         SumSq.prototype.f,
         "sumsq",
-        SumSq.prototype.diffRule
+        SumSq.prototype.diffRule,
+        n,
     )
 }
 function DistanceN(n) {
     return createConcreteOperation(
-        n,
         (...args) => Math.sqrt(SumSq.prototype.f(...args)),
         "distance",
         (...args) => d => new Sqrt(args.map(arg => new Multiply(arg, arg)).reduce((accum, arg) => new Add(accum, arg), constants.ZERO)).diff(d),
+        n,
     )
 }
 
@@ -173,30 +193,6 @@ const Distance5 = DistanceN(5);
 /*
     PARSER
 */
-
-const operators = new Map([
-    ["+", {constructor: Add, args: 2}],
-    ["-", {constructor: Subtract, args: 2}],
-    ["*", {constructor: Multiply, args: 2}],
-    ["/", {constructor: Divide, args: 2}],
-    ["atan2", {constructor: ArcTan2, args: 2}],
-    ["negate", {constructor: Negate, args: 1}],
-    ["exp", {constructor: Exp, args: 1}],
-    ["ln", {constructor: Ln, args: 1}],
-    ["atan", {constructor: ArcTan, args: 1}],
-]);
-
-const multiOperators = new Map([
-    ["sumsq", SumSqN],
-    ["distance", DistanceN]
-]);
-
-const constants = {
-    'ZERO': new Const(0),
-    'ONE': new Const(1),
-    'TWO': new Const(2),
-};
-
 function ParseError(message) {
     this.message = "ParseError: " + message;
 }
@@ -205,6 +201,7 @@ ParseError.prototype = {
     name: "ParseError",
     constructor: ParseError,
 };
+
 const assert = (statement, string) => { if (!statement) throw new ParseError(string); }
 const isOperand = str => !isNaN(str) || argsOrd.includes(str);
 const convertOperand = str => argsOrd.includes(str) ? new Variable(str) : new Const(Number(str));
@@ -216,9 +213,9 @@ function parse(str) {
         if (isOperand(token)) {
             result = convertOperand(token);
         } else if (operators.has(token)) {
-            result = convertFunction(operators.get(token).constructor, operators.get(token).args);
-        } else if (multiOperators.has((token = token.split(/(\d+)/))[0])) {
-            result = convertFunction(multiOperators.get(token[0])(token[1]), token[1]);
+            result = convertFunction(operators.get(token).constructor, operators.get(token).argc);
+        } else if (operators.get((token = token.split(/(\d+)/))[0]).argc) {
+            result = convertFunction(operators.get(token[0])(token[1]), token[1]);
         } else {
             assert(false, `Unknown type of token: ${token}.`)
         }
@@ -242,7 +239,7 @@ function parsePrefix(str) {
         assert(operators.has(token), `Expected operator, found '${token}'`);
         let operator = operators.get(token), operands = [];
         // Take all operands which are needed to apply current operator
-        for (let i = 0; i < operator.args; i++) {
+        for (let i = 0; i < operator.argc; i++) {
             token = tokens.pop()
             // Check for a normal (variable, const or opened bracket) operator start
             assert(isOperand(token) || token === '(', `Expected operand or opened brace, found '${token}'.`);
@@ -264,4 +261,3 @@ function parsePrefix(str) {
     // Successfully parsed the whole expression
     return result;
 }
-
