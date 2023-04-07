@@ -69,6 +69,7 @@ function createConcreteOperation(f, sign, diffRule, n) {
 const Add = createOperation(
     (a, b) => a + b,
     "+",
+    // :NOTE: грустные производные, диффернцирование аргументов должно на другом уровне
     (a, b) => d => new Add(a.diff(d), b.diff(d)),
     2,
 )
