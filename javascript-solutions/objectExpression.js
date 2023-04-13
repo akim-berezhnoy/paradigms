@@ -243,7 +243,7 @@ function parsePrefix(str) {
           integer,
           non-space sequence of characters (в простонародье word)
           brace (at last brace, that's why braces are matched correctly) */
-    let tokens = str.match(/-?\d+|\w+|\S/g); // :NOTE: числа с плавающей точкой
+    let tokens = str.match(/-?\d+\.{0,}\d{0,}|\w+|\S/g);
     expect(tokens, "Expected an expression, found blank line. (no parsable tokens found)")
     tokens = tokens.reverse();
     function recursiveParse(tokens) {
