@@ -53,13 +53,14 @@ function createOperation(f, sign, diffRule, n) {
     Constructor.prototype.f = f;
     Constructor.prototype.sign = sign;
     Constructor.prototype.diffRule = diffRule;
-    operators.set(sign, {constructor: Constructor, argc: n}); // :NOTE: хранить в прототайпе аргументы
+    Constructor.prototype.n = n;
+    operators.set(sign, Constructor);
     return Constructor;
 }
 
 function createConcreteOperation(f, sign, diffRule, n) {
     let operation = createOperation(f, sign, diffRule, n);
-    let proto = operators.get(operation.prototype.sign).constructor.prototype;
+    let proto = operators.get(operation.prototype.sign).prototype;
     operators.delete(proto.sign);
     operators.set(proto.sign = proto.sign + n, {constructor: proto.constructor, argc: n})
     return operation;
@@ -224,8 +225,8 @@ function parse(str) {
         if (isOperand(token)) {
             result = convertOperand(token);
         } else if (operators.has(token)) {
-            result = convertFunction(operators.get(token).constructor, operators.get(token).argc);
-        } else if (operators.get((token = token.split(/(\d+)/))[0]).argc) {
+            result = convertFunction(operators.get(token), operators.get(token).prototype.argc);
+        } else if (operators.get((token = token.split(/(\d+)/))[0]).prototype.n) {
             result = convertFunction(operators.get(token[0])(token[1]), token[1]);
         } else {
             expect(false, `Unknown type of token: ${token}.`)
@@ -252,18 +253,18 @@ function parsePrefix(str) {
         expect(operators.has(token), `Expected operator, found '${token}'`);
         let operator = operators.get(token), operands = [];
         // Take all operands which are needed to apply current operator
-        for (let i = 0; operator.argc ? i < operator.argc : tokens[tokens.length - 1] !== ')' ; i++) {
+        for (let i = 0; operator.prototype.n ? i < operator.prototype.n : tokens[tokens.length - 1] !== ')' ; i++) {
             token = tokens.pop()
+            expect(token !== ')', `Expected more operands (${operator.prototype.n}), but found ')'.`)
             // Check for a normal (variable, const or opened bracket) operator start
             expect(isOperand(token) || token === '(', `Expected operand or opened brace, found '${token}'.`);
             // Convert and push variable, const or parse and push the whole operand-chunk
             operands.push(isOperand(token) ? convertOperand(token) : recursiveParse(tokens));
         }
-        // :NOTE: проверить, что достаточно аргументов
         // Make sure that the expression (or single-operator block) lasted with a closed brace
         expect((token = tokens.pop()) === ')', `Expected closed brace, found '${token}'.`);
         // Successfully parsed an operator
-        return new operator.constructor(...operands);
+        return new operator(...operands);
     }
     // Check for a single-operand expression. If so => leave
     if (tokens.length === 1 && isOperand(tokens[0])) return convertOperand(tokens.pop());
@@ -275,4 +276,3 @@ function parsePrefix(str) {
     // Successfully parsed the whole expression
     return result;
 }
-
