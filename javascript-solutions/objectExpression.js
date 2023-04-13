@@ -53,7 +53,7 @@ function createOperation(f, sign, diffRule, n) {
     Constructor.prototype.f = f;
     Constructor.prototype.sign = sign;
     Constructor.prototype.diffRule = diffRule;
-    operators.set(sign, {constructor: Constructor, argc: n});
+    operators.set(sign, {constructor: Constructor, argc: n}); // :NOTE: хранить в прототайпе аргументы
     return Constructor;
 }
 
@@ -242,7 +242,7 @@ function parsePrefix(str) {
           integer,
           non-space sequence of characters (в простонародье word)
           brace (at last brace, that's why braces are matched correctly) */
-    let tokens = str.match(/-?\d+|\w+|\S/g);
+    let tokens = str.match(/-?\d+|\w+|\S/g); // :NOTE: числа с плавающей точкой
     expect(tokens, "Expected an expression, found blank line. (no parsable tokens found)")
     tokens = tokens.reverse();
     function recursiveParse(tokens) {
@@ -259,6 +259,7 @@ function parsePrefix(str) {
             // Convert and push variable, const or parse and push the whole operand-chunk
             operands.push(isOperand(token) ? convertOperand(token) : recursiveParse(tokens));
         }
+        // :NOTE: проверить, что достаточно аргументов
         // Make sure that the expression (or single-operator block) lasted with a closed brace
         expect((token = tokens.pop()) === ')', `Expected closed brace, found '${token}'.`);
         // Successfully parsed an operator
