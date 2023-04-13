@@ -62,7 +62,7 @@ function createConcreteOperation(f, sign, diffRule, n) {
     let operation = createOperation(f, sign, diffRule, n);
     let proto = operators.get(operation.prototype.sign).prototype;
     operators.delete(proto.sign);
-    operators.set(proto.sign = proto.sign + n, {constructor: proto.constructor, argc: n})
+    operators.set(proto.sign = proto.sign + n, proto.constructor)
     return operation;
 }
 
@@ -116,7 +116,7 @@ const Exp = createOperation(
     ),
     1,
 )
-const Ln = createConcreteOperation(
+const Ln = createOperation(
     a => Math.log(a),
     "ln",
     a => d => new Multiply(
@@ -225,7 +225,7 @@ function parse(str) {
         if (isOperand(token)) {
             result = convertOperand(token);
         } else if (operators.has(token)) {
-            result = convertFunction(operators.get(token), operators.get(token).prototype.argc);
+            result = convertFunction(operators.get(token), operators.get(token).prototype.n);
         } else if (operators.get((token = token.split(/(\d+)/))[0]).prototype.n) {
             result = convertFunction(operators.get(token[0])(token[1]), token[1]);
         } else {
@@ -243,7 +243,7 @@ function parsePrefix(str) {
           integer,
           non-space sequence of characters (в простонародье word)
           brace (at last brace, that's why braces are matched correctly) */
-    let tokens = str.match(/-?\d+\.{0,}\d{0,}|\w+|\S/g);
+    let tokens = str.match(/-?\d+\.?\d*|\w+|\S/g);
     expect(tokens, "Expected an expression, found blank line. (no parsable tokens found)")
     tokens = tokens.reverse();
     function recursiveParse(tokens) {
