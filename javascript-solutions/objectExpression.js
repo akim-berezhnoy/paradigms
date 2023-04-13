@@ -36,7 +36,7 @@ function Operation(...operands) {
 Operation.prototype = {
     evaluate: function (...args) { return this.f(...this.operands.map(operand => operand.evaluate(...args))) },
     toString: function () { return this.operands.reduce((accumulator, operand) => accumulator + operand + " ", '') + this.sign },
-    prefix: function() { return '(' + this.sign + this.operands.reduce((accumulator, operand) => accumulator + " " + operand.prefix(), '') + ')'},
+    prefix: function() { return '(' + this.sign + (this.operands.length > 0 ? this.operands.reduce((accumulator, operand) => accumulator + ' ' + operand.prefix() , '') : ' ' ) + ')'},
     diff: function (d) { return this.diffRule(...this.operands)(d) },
 }
 
@@ -191,11 +191,21 @@ const Distance3 = DistanceN(3);
 const Distance4 = DistanceN(4);
 const Distance5 = DistanceN(5);
 
+const Sum = createOperation(
+    (...args) => args.reduce((accum, arg) => accum + arg, 0),
+    "sum",
+)
+
+const Avg = createOperation(
+    (...args) => args.reduce((accum, arg) => accum + arg, 0)/args.length,
+    "avg",
+)
+
 /*
     PARSER
 */
 function ParseError(message) {
-    this.message = "ParseError: " + message;
+    this.message = message;
 }
 ParseError.prototype = {
     ...Object.create(Error.prototype),
@@ -203,7 +213,7 @@ ParseError.prototype = {
     constructor: ParseError,
 };
 
-const assert = (statement, string) => { if (!statement) throw new ParseError(string); }
+const expect = (statement, string) => { if (!statement) throw new ParseError(string); }
 const isOperand = str => !isNaN(str) || argsOrd.includes(str);
 const convertOperand = str => argsOrd.includes(str) ? new Variable(str) : new Const(Number(str));
 
@@ -218,7 +228,7 @@ function parse(str) {
         } else if (operators.get((token = token.split(/(\d+)/))[0]).argc) {
             result = convertFunction(operators.get(token[0])(token[1]), token[1]);
         } else {
-            assert(false, `Unknown type of token: ${token}.`)
+            expect(false, `Unknown type of token: ${token}.`)
         }
         return result;
     }
@@ -232,33 +242,36 @@ function parsePrefix(str) {
           integer,
           non-space sequence of characters (в простонародье word)
           brace (at last brace, that's why braces are matched correctly) */
-    let tokens = str.match(/-?\d+|\w+|\S/g).reverse();
+    let tokens = str.match(/-?\d+|\w+|\S/g);
+    expect(tokens, "Expected an expression, found blank line. (no parsable tokens found)")
+    tokens = tokens.reverse();
     function recursiveParse(tokens) {
         // Take first token
         let token = tokens.pop();
         // Check for an operator
-        assert(operators.has(token), `Expected operator, found '${token}'`);
+        expect(operators.has(token), `Expected operator, found '${token}'`);
         let operator = operators.get(token), operands = [];
         // Take all operands which are needed to apply current operator
-        for (let i = 0; i < operator.argc; i++) {
+        for (let i = 0; operator.argc ? i < operator.argc : tokens[tokens.length - 1] !== ')' ; i++) {
             token = tokens.pop()
             // Check for a normal (variable, const or opened bracket) operator start
-            assert(isOperand(token) || token === '(', `Expected operand or opened brace, found '${token}'.`);
+            expect(isOperand(token) || token === '(', `Expected operand or opened brace, found '${token}'.`);
             // Convert and push variable, const or parse and push the whole operand-chunk
             operands.push(isOperand(token) ? convertOperand(token) : recursiveParse(tokens));
         }
         // Make sure that the expression (or single-operator block) lasted with a closed brace
-        assert((token = tokens.pop()) === ')', `Expected closed brace, found '${token}'.`);
+        expect((token = tokens.pop()) === ')', `Expected closed brace, found '${token}'.`);
         // Successfully parsed an operator
         return new operator.constructor(...operands);
     }
     // Check for a single-operand expression. If so => leave
     if (tokens.length === 1 && isOperand(tokens[0])) return convertOperand(tokens.pop());
     // Check for a normal (opened bracket) start
-    assert(tokens.pop() === '(', `Expected '(' at the start of an expression.`);
+    expect(tokens.pop() === '(', `Expected '(' at the start of an expression.`);
     let result = recursiveParse(tokens);
     // Check for a normal (nothing left) ending
-    assert(tokens.length === 0, `Expected end of expression, found tokens: ${tokens}.`);
+    expect(tokens.length === 0, `Expected end of expression, found tokens: ${tokens}.`);
     // Successfully parsed the whole expression
     return result;
 }
+
