@@ -94,27 +94,22 @@
   ([m1 m2 & args]
    (reduce m*m (m*m m1 m2) args)))
 
-; Tensors
-(defn tensor_cord [f]
-  (fn inner [& args]
-    {:pre [(apply same-size-tensors? args)]
-     :post [(same-size-tensors? %)]}
-    (if (every? number? args)
-      (apply f args)
-      (apply mapv inner args))))
-(def t+ "Adds one or more tensors together" (tensor_cord +))
-(def t- "Subtracts one or more tensors together" (tensor_cord -))
-(def t* "Multiplies one or more tensors together" (tensor_cord *))
-(def td "Divides one or more tensors together" (tensor_cord /))
-
 ; Shapeless
-
 (defn shapeless_cord [f]
   (fn inner [& args]
     (if (every? number? args)
       (apply f args)
       (apply mapv inner args))))
-(def s+ "Adds one or more tensors together" (shapeless_cord +))
-(def s- "Subtracts one or more tensors together" (shapeless_cord -))
-(def s* "Multiplies one or more tensors together" (shapeless_cord *))
-(def sd "Divides one or more tensors together" (shapeless_cord /))
+(def s+ "Adds one or more shapeless together" (shapeless_cord +))
+(def s- "Subtracts one or more shapeless together" (shapeless_cord -))
+(def s* "Multiplies one or more shapeless together" (shapeless_cord *))
+(def sd "Divides one or more shapeless together" (shapeless_cord /))
+
+; Tensors
+(defn tensor_cord [f] (fn [& args] {:pre [(apply same-size-tensors? args)]
+                                    :post [(same-size-tensors? %)]}
+                        (apply (shapeless_cord f) args) ))
+(def t+ "Adds one or more tensors together" (tensor_cord +))
+(def t- "Subtracts one or more tensors together" (tensor_cord -))
+(def t* "Multiplies one or more tensors together" (tensor_cord *))
+(def td "Divides one or more tensors together" (tensor_cord /))
