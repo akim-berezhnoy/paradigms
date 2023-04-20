@@ -21,10 +21,10 @@
                    {:pre [(apply same-length-vectors? args)]
                     :post [(vectors-of-scalars %)]}
                    (vec (apply map f args))))
-(def v+ "Adds one or more matrices together" (v_cord +))
-(def v- "Subtracts one or more matrices together" (v_cord -))
-(def v* "Multiplies one or more matrices together" (v_cord *))
-(def vd "Divides one or more matrices together" (v_cord /))
+(def v+ "Adds one or more vectors together" (v_cord +))
+(def v- "Subtracts one or more vectors together" (v_cord -))
+(def v* "Multiplies one or more vectors together" (v_cord *))
+(def vd "Divides one or more vectors together" (v_cord /))
 
 (defn scalar "Returns scalar-product of one or more vectors"
   [& args]
