@@ -10,6 +10,9 @@
 (def-exp multiply *)
 (def-exp divide (fn ([x] (/ 1.0 x))
                     ([x & args] (/ (double x) (apply * args)))))
+;
+(def-exp arcTan math/atan)
+(def-exp arcTan2 math/atan2)
 
 ; ExpLn
 (def-exp ln math/log)
@@ -34,6 +37,8 @@
                 'ln     ln
                 'sumexp sumexp
                 'lse    lse
+                'atan  arcTan
+                'atan2 arcTan2
                 'meansq meansq
                 'rms    rms})
 ; Parser
