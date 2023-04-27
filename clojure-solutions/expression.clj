@@ -1,38 +1,44 @@
-(require 'clojure.math)
+(require '[clojure.math :as math])
 ; Base
 (defn constant [x] (fn [map] x))
 (defn variable [x] (fn [map] (get map x)))
 (defn multi-arg-operation [f] (fn [& args] (fn [map] (apply f (mapv #(% map) args)))))
-(def add (multi-arg-operation +))
-(def subtract (multi-arg-operation -))
+(defmacro def-exp [name op] `(do (def ~name (multi-arg-operation ~op))))
+(def-exp add +)
+(def-exp subtract -)
 (def negate subtract)
-(def multiply (multi-arg-operation *))
-(def divide (letfn [(custom-division
-                      ([x] (if (zero? x) ##Inf (/ 1 x)))
-                      ([a b] (if (zero? b) ##Inf (/ a b)))
-                      ([a b & args] (reduce custom-division (custom-division a b) args)))]
-              (multi-arg-operation custom-division)))
+(def-exp multiply *)
+(def-exp divide (fn ([x] (/ 1.0 x))
+                    ([x & args] (/ (double x) (apply * args)))))
+
+; ExpLn
+(def-exp ln math/log)
+(def-exp exp math/exp)
+
 ; SumexpLSE (36, 37)
-(defn sumexp-func [& args] (reduce #(+ %1 (clojure.math/exp %2)) 0 args))
-(def sumexp (multi-arg-operation sumexp-func))
-(def lse (multi-arg-operation (comp clojure.math/log sumexp-func)))
+(letfn [(f-sumexp [& args] (reduce #(+ %1 (math/exp %2)) 0 args))]
+  (def-exp sumexp f-sumexp)
+  (def-exp lse (comp math/log f-sumexp)))
+
 ; MeansqRMS (38, 39)
-(defn meansq-func [& args] (/ (reduce #(+ %1 (clojure.math/pow %2 2)) 0 args) (count args)))
-(def meansq (multi-arg-operation meansq-func))
-(def rms (multi-arg-operation (comp clojure.math/sqrt meansq-func)))
-; Functions
-(def functions {'+ add
-                '- subtract
+(letfn [(f-meansq [& args] (/ (reduce #(+ %1 (math/pow %2 2)) 0 args) (count args)))]
+  (def-exp meansq f-meansq)
+  (def-exp rms (comp math/sqrt f-meansq)))
+
+(def operators {'+      add
+                '-      subtract
                 'negate negate
-                '* multiply
-                '/ divide
+                '*      multiply
+                '/      divide
+                'exp    exp
+                'ln     ln
                 'sumexp sumexp
-                'lse lse
+                'lse    lse
                 'meansq meansq
-                'rms rms})
+                'rms    rms})
 ; Parser
-(defn parseFunction [str] (letfn [(replace-all [el] (cond
-                                               (number? el) (constant el)
-                                               (symbol? el) (variable (name el))
-                                               (list? el) (apply (get functions (first el)) (map replace-all (rest el)))))]
-                            (replace-all (read-string str))))
+(defn parseFunction [str] (letfn [(parseAST [el] (cond
+                                                   (number? el) (constant el)
+                                                   (symbol? el) (variable (name el))
+                                                   (list? el) (apply (get operators (first el)) (map parseAST (rest el)))))]
+                            (parseAST (read-string str))))
