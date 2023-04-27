@@ -1,6 +1,6 @@
 (require '[clojure.math :as math])
 ; Base
-(defn constant [x] (fn [map] x))
+(defn constant [x] (constantly x))
 (defn variable [x] (fn [map] (get map x)))
 (defn multi-arg-operation [f] (fn [& args] (fn [map] (apply f (mapv #(% map) args)))))
 (defmacro def-exp [name op] `(do (def ~name (multi-arg-operation ~op))))
