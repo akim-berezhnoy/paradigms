@@ -10,7 +10,7 @@
 (def-exp multiply *)
 (def-exp divide (fn ([x] (/ 1.0 x))
                     ([x & args] (/ (double x) (apply * args)))))
-;
+; ArcTan
 (def-exp arcTan math/atan)
 (def-exp arcTan2 math/atan2)
 
