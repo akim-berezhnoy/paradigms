@@ -8,8 +8,9 @@
 (def-exp subtract -)
 (def negate subtract)
 (def-exp multiply *)
-(def-exp divide (fn ([x] (/ 1.0 x))
-                    ([x & args] (/ (double x) (apply * args)))))
+(defn custom-divide ([x] (/ 1.0 x))
+        ([x & args] (/ (double x) (apply * args))))
+(def-exp divide custom-divide)
 ; ArcTan
 (def-exp arcTan math/atan)
 (def-exp arcTan2 math/atan2)
@@ -37,8 +38,8 @@
                 'ln     ln
                 'sumexp sumexp
                 'lse    lse
-                'atan  arcTan
-                'atan2 arcTan2
+                'atan   arcTan
+                'atan2  arcTan2
                 'meansq meansq
                 'rms    rms})
 ; Parser
@@ -46,4 +47,35 @@
                                                    (number? el) (constant el)
                                                    (symbol? el) (variable (name el))
                                                    (list? el) (apply (get operators (first el)) (map parseAST (rest el)))))]
+                            (parseAST (read-string str))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(definterface IExpression
+             (^Number evaluate [vars])
+             (^String toString []))
+(deftype Expression [f sign args]
+  IExpression
+  (evaluate [this vars] (if (and (zero? (count args)) (not (empty? sign))) (get vars sign) (apply f (mapv #(.evaluate % vars) args))))
+  (toString [this] (cond (empty? sign) (str (f))
+                         (zero? (count args)) sign
+                         :else (str "(" sign " " (clojure.string/join " " args) ")"))))
+(defn evaluate [expr vars] (.evaluate expr vars))
+(defn toString [expr] (.toString expr))
+(defn Constant [value] (Expression. (constantly value) "" []))
+(defn Variable [name] (Expression. () name []))
+(defn Add [& args] (Expression. + "+" args))
+(defn Subtract [& args] (Expression. - "-" args))
+(defn Multiply [& args] (Expression. * "*" args))
+(defn Divide [& args] (Expression. custom-divide "/" args))
+(defn Negate [& args] (Expression. - "negate" args))
+(def objOperators {'+      Add
+                   '-      Subtract
+                   'negate Negate
+                   '*      Multiply
+                   '/      Divide })
+(defn parseObject [str] (letfn [(parseAST [el] (cond
+                                                   (number? el) (Constant el)
+                                                   (symbol? el) (Variable (name el))
+                                                   (list? el) (apply (get objOperators (first el)) (map parseAST (rest el)))))]
                             (parseAST (read-string str))))
