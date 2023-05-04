@@ -80,8 +80,8 @@
 (def-class Negate - "negate")
 (def-class Sin math/sin "sin")
 (def-class Cos math/cos "cos")
-(def-class Sinh math/sinh "sin")
-(def-class Cosh math/cosh "cos") (def-class ArcTan math/atan "atan")
+(def-class Sinh math/sinh "sinh")
+(def-class Cosh math/cosh "cosh") (def-class ArcTan math/atan "atan")
 (def-class ArcTan2 math/atan2 "atan2")
 (def objOperators {'+      Add
                    '-      Subtract
