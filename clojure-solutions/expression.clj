@@ -78,6 +78,8 @@
 (def-class Multiply * "*")
 (def-class Divide custom-divide "/")
 (def-class Negate - "negate")
+(def-class Sin math/sin "sin")
+(def-class Cos math/cos "cos")
 (def-class ArcTan math/atan "atan")
 (def-class ArcTan2 math/atan2 "atan2")
 (def objOperators {'+      Add
@@ -85,6 +87,8 @@
                    'negate Negate
                    '*      Multiply
                    '/      Divide
+                   'sin    Sin
+                   'cos    Cos
                    'atan   ArcTan
                    'atan2  ArcTan2})
 (defn parseObject [str] (let [parse (parseExpression Constant Variable objOperators)] (parse str)))
