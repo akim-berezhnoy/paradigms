@@ -73,6 +73,7 @@
 (defn toString [expr] (.toString expr))
 (defn Constant [value] (Java-Constant. value))
 (defn Variable [name] (Java-Variable. name))
+
 (def-class Subtract - "-")
 (def-class Add + "+")
 (def-class Multiply * "*")
