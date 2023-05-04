@@ -43,39 +43,48 @@
                 'meansq meansq
                 'rms    rms})
 ; Parser
-(defn parseFunction [str] (letfn [(parseAST [el] (cond
-                                                   (number? el) (constant el)
-                                                   (symbol? el) (variable (name el))
-                                                   (list? el) (apply (get operators (first el)) (map parseAST (rest el)))))]
-                            (parseAST (read-string str))))
+(defn parseExpression [constant# variable# operators#] (fn [str] (letfn [(parseAST [el] (cond
+                                                                                      (number? el) (constant# el)
+                                                                                      (symbol? el) (variable# (name el))
+                                                                                      (list? el) (apply (get operators# (first el)) (map parseAST (rest el)))))]
+                                                      (parseAST (read-string str)))))
+(defn parseFunction [str] (let [parse (parseExpression constant variable operators)] (parse str)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (definterface IExpression
              (^Number evaluate [vars])
              (^String toString []))
-(deftype Expression [f sign args]
+(deftype Java-Constant [value]
   IExpression
-  (evaluate [this vars] (if (and (zero? (count args)) (not (empty? sign))) (get vars sign) (apply f (mapv #(.evaluate % vars) args))))
-  (toString [this] (cond (empty? sign) (str (f))
-                         (zero? (count args)) sign
-                         :else (str "(" sign " " (clojure.string/join " " args) ")"))))
+  (evaluate [this vars] value)
+  (toString [this] (str value)))
+(deftype Java-Variable [name]
+  IExpression
+  (evaluate [this vars] (get vars name))
+  (toString [this] name))
+(deftype Java-Expression [f sign args]
+  IExpression
+  (evaluate [this vars] (apply f (mapv #(.evaluate % vars) args)))
+  (toString [this] (str "(" sign " " (clojure.string/join " " args) ")")))
+
+(defmacro def-class [name# op# sign#] `(defn ~name# [& args#] (Java-Expression. ~op# ~sign# args#)))
 (defn evaluate [expr vars] (.evaluate expr vars))
 (defn toString [expr] (.toString expr))
-(defn Constant [value] (Expression. (constantly value) "" []))
-(defn Variable [name] (Expression. () name []))
-(defn Add [& args] (Expression. + "+" args))
-(defn Subtract [& args] (Expression. - "-" args))
-(defn Multiply [& args] (Expression. * "*" args))
-(defn Divide [& args] (Expression. custom-divide "/" args))
-(defn Negate [& args] (Expression. - "negate" args))
+(defn Constant [value] (Java-Constant. value))
+(defn Variable [name] (Java-Variable. name))
+(def-class Subtract - "-")
+(def-class Add + "+")
+(def-class Multiply * "*")
+(def-class Divide custom-divide "/")
+(def-class Negate - "negate")
+(def-class ArcTan math/atan "atan")
+(def-class ArcTan2 math/atan2 "atan2")
 (def objOperators {'+      Add
                    '-      Subtract
                    'negate Negate
                    '*      Multiply
-                   '/      Divide })
-(defn parseObject [str] (letfn [(parseAST [el] (cond
-                                                   (number? el) (Constant el)
-                                                   (symbol? el) (Variable (name el))
-                                                   (list? el) (apply (get objOperators (first el)) (map parseAST (rest el)))))]
-                            (parseAST (read-string str))))
+                   '/      Divide
+                   'atan   ArcTan
+                   'atan2  ArcTan2})
+(defn parseObject [str] (let [parse (parseExpression Constant Variable objOperators)] (parse str)))
