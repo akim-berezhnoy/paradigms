@@ -54,28 +54,36 @@
 
 (definterface IExpression
              (^Number evaluate [vars])
-             (^String toString []))
+             (^String toString [])
+             (^String toStringPostfix []))
 (deftype Java-Constant [value]
   IExpression
   (evaluate [this vars] value)
-  (toString [this] (str value)))
+  (toString [this] (str value))
+  (toStringPostfix [this] (.toString this)))
 (deftype Java-Variable [name]
   IExpression
   (evaluate [this vars] (get vars name))
-  (toString [this] name))
-(deftype Java-Expression [f sign args]
-  IExpression
-  (evaluate [this vars] (apply f (mapv #(.evaluate % vars) args)))
-  (toString [this] (str "(" sign " " (clojure.string/join " " args) ")")))
+  (toString [this] name)
+  (toStringPostfix [this] (.toString this)))
+(defmacro def-class [name f sign]
+  (let [name' (symbol (str "Java-" name))]
+    `(do
+       (deftype ~name' [args#]
+         IExpression
+         (evaluate [this vars#] (apply ~f (mapv #(.evaluate % vars#) args#)))
+         (toString [this] (str "(" ~sign " " (clojure.string/join " " args#) ")"))
+         (toStringPostfix [this] (str "(" (clojure.string/join " " (mapv #(.toStringPostfix %) args#)) " " ~sign ")")))
+       (defn ~name [& args#] (new ~name' args#)))))
 
-(defmacro def-class [name# op# sign#] `(defn ~name# [& args#] (Java-Expression. ~op# ~sign# args#)))
 (defn evaluate [expr vars] (.evaluate expr vars))
 (defn toString [expr] (.toString expr))
+(defn toStringPostfix [expr] (.toStringPostfix expr))
 (defn Constant [value] (Java-Constant. value))
 (defn Variable [name] (Java-Variable. name))
 
-(def-class Subtract - "-")
 (def-class Add + "+")
+(def-class Subtract - "-")
 (def-class Multiply * "*")
 (def-class Divide custom-divide "/")
 (def-class Negate - "negate")
@@ -96,3 +104,30 @@
                    'atan   ArcTan
                    'atan2  ArcTan2})
 (defn parseObject [str] (let [parse (parseExpression Constant Variable objOperators)] (parse str)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(load-file "parser.clj")
+(defparser parseObjectPostfix
+           *+ (+seqf (constantly Add) \+)
+           *- (+seqf (constantly Subtract) \-)
+           ** (+seqf (constantly Multiply) \*)
+           *divide (+seqf (constantly Divide) \/)
+           *neg (+seqf (constantly Negate) \n\e\g\a\t\e)
+
+           *characters (mapv char (range 0 128))
+           (*chars [p] (+char (apply str (filter p *characters))))
+           *letter (*chars #(Character/isLetter %))
+           *digit (*chars #(or (Character/isDigit %) (= % (char 45)) (= % (char 46))))
+           *single-whitespace (*chars #(Character/isWhitespace %))
+           *whitespace (+ignore (+star *single-whitespace))
+           *constant (+map (comp Constant read-string) (+str (+plus *digit)))
+           *variable (+map Variable (+str (+plus *letter)))
+           *unary-operator (+or *neg)
+           *binary-operator (+or *+ *- ** *divide)
+           *unary (+map (fn [[a op]] (op a)) (+seq *parseObjectPostfix *unary-operator))
+           *expression (+seqn 1 \( *whitespace (delay (+or *unary *inner-expression)) *whitespace \))
+           *inner-expression (+map (fn [[a b]] (apply (fn [a [b op]] (op a b)) a b)) (+seq *parseObjectPostfix (+opt (+star (+seq *parseObjectPostfix *binary-operator)))))
+           *parseObjectPostfix (+seqn 0 *whitespace (+or *constant *variable *expression) *whitespace))
+
+
