@@ -114,6 +114,7 @@
 (def-class UPow #(math/exp %) "**")
 (def-class ULog #(math/log %) "//")
 
+
 (defparser parseObjectPostfix
            *UPow (+seqf (constantly UPow) \*\*)
            *ULog (+seqf (constantly ULog) \/\/)
