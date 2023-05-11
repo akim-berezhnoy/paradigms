@@ -63,7 +63,7 @@
   (toStringPostfix [this] (.toString this)))
 (deftype Java-Variable [name]
   IExpression
-  (evaluate [this vars] (get vars name))
+  (evaluate [this vars] (get vars (str (first (clojure.string/lower-case name)))))
   (toString [this] name)
   (toStringPostfix [this] (.toString this)))
 (defmacro def-class [name f sign]
@@ -90,8 +90,10 @@
 (def-class Sin math/sin "sin")
 (def-class Cos math/cos "cos")
 (def-class Sinh math/sinh "sinh")
-(def-class Cosh math/cosh "cosh") (def-class ArcTan math/atan "atan")
+(def-class Cosh math/cosh "cosh")
+(def-class ArcTan math/atan "atan")
 (def-class ArcTan2 math/atan2 "atan2")
+
 (def objOperators {'+      Add
                    '-      Subtract
                    'negate Negate
@@ -108,7 +110,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (load-file "parser.clj")
+
+(def-class UPow #(math/exp %) "**")
+(def-class ULog #(math/log %) "//")
+
 (defparser parseObjectPostfix
+           *UPow (+seqf (constantly UPow) \*\*)
+           *ULog (+seqf (constantly ULog) \/\/)
            *+ (+seqf (constantly Add) \+)
            *- (+seqf (constantly Subtract) \-)
            ** (+seqf (constantly Multiply) \*)
@@ -123,7 +131,7 @@
            *whitespace (+ignore (+star *single-whitespace))
            *constant (+map (comp Constant read-string) (+str (+plus *digit)))
            *variable (+map Variable (+str (+plus *letter)))
-           *unary-operator (+or *neg)
+           *unary-operator (+or *neg *UPow *ULog)
            *binary-operator (+or *+ *- ** *divide)
            *unary (+map (fn [[a op]] (op a)) (+seq *parseObjectPostfix *unary-operator))
            *expression (+seqn 1 \( *whitespace (delay (+or *unary *inner-expression)) *whitespace \))
