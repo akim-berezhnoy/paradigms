@@ -18,3 +18,4 @@ cube_divisors(N, TripledPrimes) :- N > 1, prime_divisors(N, Primes), triple(Prim
 
 triple([Head], [Head, Head, Head]).
 triple([Head | Tail], [Head, Head, Head | TripledTail]) :- triple(Tail, TripledTail).
+
