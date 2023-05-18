@@ -14,7 +14,7 @@ remaining_divisors(N, [Divisor | Tail], Candidate) :-
     remaining_divisors(N, [Divisor | Tail], Candidate + 1).
 
 square_divisors(1, []).
-square_divisors(N, DoubledPrimes) :- N > 1, prime_divisors(N, Primes), double(m, DoubledPrimes).
+square_divisors(N, DoubledPrimes) :- N > 1, prime_divisors(N, Primes), double(Primes, DoubledPrimes).
 
 double([Head], [Head, Head]).
 double([Head | Tail], [Head, Head | DoubledTail]) :- double(Tail, DoubledTail).
