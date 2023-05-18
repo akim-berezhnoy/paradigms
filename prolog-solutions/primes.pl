@@ -3,12 +3,11 @@ prime(N) :- primes(N); ensure_prime(N, 2), assert(primes(N)).
 composite(N) :- \+ prime(N).
 
 prime_divisors(1, []).
-prime_divisors(N, Divisors) :- N > 1, remaining_divisors(N, Divisors, 2), !.
+prime_divisors(N, divisors) :- N > 1, remaining_divisors(N, Divisors, 2), !.
 is_prime_divisor(N, Divisor) :- prime(Divisor), 0 is mod(N, Divisor).
 remaining_divisors(N, [Divisor], _) :- prime(N), Divisor is N.
 remaining_divisors(N, [Divisor | Tail], Candidate) :-
-    (Candidate > 1,
-     N >= Candidate * Candidate,
+    (N >= Candidate * Candidate,
      is_prime_divisor(N, Candidate),
      Divisor is Candidate,
      remaining_divisors(div(N, Divisor), Tail, Divisor));
@@ -19,5 +18,3 @@ square_divisors(N, DoubledPrimes) :- N > 1, prime_divisors(N, Primes), double(Pr
 
 double([Head], [Head, Head]).
 double([Head | Tail], [Head, Head | DoubledTail]) :- double(Tail, DoubledTail).
-
-
