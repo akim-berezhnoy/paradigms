@@ -13,8 +13,8 @@ remaining_divisors(N, [Divisor | Tail], Candidate) :-
      remaining_divisors(div(N, Divisor), Tail, Divisor));
     remaining_divisors(N, [Divisor | Tail], Candidate + 1).
 
-square_divisors(1, []).
-square_divisors(N, DoubledPrimes) :- N > 1, prime_divisors(N, Primes), double(Primes, DoubledPrimes).
+cube_divisors(1, []).
+cube_divisors(N, TripledPrimes) :- N > 1, prime_divisors(N, Primes), triple(Primes, TripledPrimes).
 
-double([Head], [Head, Head]).
-double([Head | Tail], [Head, Head | DoubledTail]) :- double(Tail, DoubledTail).
+triple([Head], [Head, Head, Head]).
+triple([Head | Tail], [Head, Head, Head | TripledTail]) :- triple(Tail, TripledTail).
