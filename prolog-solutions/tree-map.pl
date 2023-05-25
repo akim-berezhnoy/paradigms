@@ -18,5 +18,6 @@ map_values([_, Value, LeftChild, RightChild], Values) :-
     append(MinValues, [Value], Minims),
     append(Minims, MaxValues, Values).
 
+
 map_get(Tree, Key, Value) :- Tree = [NodeKey, NodeValue, LeftChild, RightChild],
        (Key < NodeKey, map_get(LeftChild, Key, Value); Key > NodeKey, map_get(RightChild, Key, Value); Key = NodeKey, Value = NodeValue).
